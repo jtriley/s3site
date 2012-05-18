@@ -1,7 +1,7 @@
 """
 s3site Command Line Interface:
 
-s3site [global-opts] action [action-opts] [<action-args> ...]
+s3site [global-opts] command [command-opts] [<command-args> ...]
 """
 import os
 import sys
@@ -61,7 +61,7 @@ class S3SiteCLI(object):
         gopts, args = gparser.parse_args()
         if not args:
             gparser.print_help()
-            raise SystemExit("\nError: you must specify an action.")
+            raise SystemExit("\nError: you must specify a command.")
         # set debug level if specified
         if gopts.DEBUG:
             console.setLevel(logger.DEBUG)
@@ -105,8 +105,8 @@ class S3SiteCLI(object):
             cmds_header = 'Available Commands:'
             gparser.usage += '\n\n%s\n' % cmds_header
             gparser.usage += '%s\n' % ('-' * len(cmds_header))
-            gparser.usage += "NOTE: Pass --help to any command for a list of "
-            gparser.usage += 'its options and detailed usage information\n\n'
+            gparser.usage += "NOTE: Pass --help to any command for more "
+            gparser.usage += "info.\n\n"
             subcmds = subcmds or commands.all_cmds
             for sc in subcmds:
                 helptxt = sc.__doc__.splitlines()[3].strip()
