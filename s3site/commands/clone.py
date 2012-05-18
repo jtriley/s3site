@@ -5,9 +5,9 @@ class CmdClone(CmdBase):
     """
     Clone
 
-    Download the current version of a static S3 web-site
+    Download a static S3 web-site to a local directory
     """
-    names = ['clone']
+    names = ['clone', 'cl']
 
     def execute(self, args):
         pass

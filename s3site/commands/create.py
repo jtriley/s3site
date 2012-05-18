@@ -7,7 +7,7 @@ class CmdCreate(CmdBase):
 
     Create new static S3 web-site and CloudFront distribution
     """
-    names = ['create']
+    names = ['create', 'c']
 
     def execute(self, args):
         pass

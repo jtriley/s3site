@@ -11,7 +11,7 @@ class CmdShell(CmdBase):
     """
     shell
 
-    Load an interactive IPython shell configured for s3site development
+    Load an interactive IPython shell configured for s3site
     """
 
     names = ['shell', 'sh']

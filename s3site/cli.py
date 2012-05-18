@@ -1,7 +1,7 @@
 """
-s3site Command Line Interface:
+(square brackets mean optional)
 
-s3site [global-opts] command [command-opts] [<command-args> ...]
+  s3site [global-opts] command [command-opts] command-args
 """
 import os
 import sys
@@ -61,7 +61,7 @@ class S3SiteCLI(object):
         gopts, args = gparser.parse_args()
         if not args:
             gparser.print_help()
-            raise SystemExit("\nError: you must specify a command.")
+            raise SystemExit("\n!!! Error: you must specify a command.")
         # set debug level if specified
         if gopts.DEBUG:
             console.setLevel(logger.DEBUG)
@@ -101,19 +101,24 @@ class S3SiteCLI(object):
             gparser = optparse.OptionParser(__doc__.strip(),
                                             version=__version__,
                                             add_help_option=add_help)
-            # Build map of name -> command and docstring.
-            cmds_header = 'Available Commands:'
-            gparser.usage += '\n\n%s\n' % cmds_header
-            gparser.usage += '%s\n' % ('-' * len(cmds_header))
-            gparser.usage += "NOTE: Pass --help to any command for more "
-            gparser.usage += "info.\n\n"
+            subcmd_descriptions = ''
             subcmds = subcmds or commands.all_cmds
+            # Build map of name -> command and docstring.
             for sc in subcmds:
                 helptxt = sc.__doc__.splitlines()[3].strip()
-                gparser.usage += '- %s: %s\n' % (', '.join(sc.names), helptxt)
+                description = '- %s: %s\n' % (', '.join(sc.names), helptxt)
+                subcmd_descriptions += description
                 for n in sc.names:
                     assert n not in self.subcmds_map
                     self.subcmds_map[n] = sc
+            max_len = len(max(subcmd_descriptions.splitlines()))
+            cmds_header = 'Commands: (pass --help to any command for '
+            cmds_header += 'detailed usage)'
+            gparser.usage += '\n\n%s\n' % cmds_header
+            gparser.usage += '%s\n' % ('-' * max_len)
+            gparser.usage += subcmd_descriptions
+            gparser.usage += '%s\n' % ('-' * max_len)
+            gparser.usage = gparser.usage.strip()
         gparser.add_option("-d", "--debug", dest="DEBUG",
                            action="store_true", default=False,
                            help="print debug messages (useful for "

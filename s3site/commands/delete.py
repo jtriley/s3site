@@ -7,7 +7,7 @@ class CmdDelete(CmdBase):
 
     Delete a static website on S3 and its CloudFront distribution
     """
-    names = ['delete']
+    names = ['delete', 'd']
 
     def execute(self, args):
         pass

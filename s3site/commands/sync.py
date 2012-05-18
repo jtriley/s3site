@@ -5,9 +5,9 @@ class CmdSync(CmdBase):
     """
     sync
 
-    Sync static S3 web-site with a local directory and invalidate CloudFront
+    Sync static S3 web-site and invalidate CloudFront paths
     """
-    names = ['sync']
+    names = ['sync', 's']
 
     def execute(self, args):
         pass
