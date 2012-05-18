@@ -1,0 +1,4 @@
+boto==2.4.1
+ipython
+pep8
+pyflakes
