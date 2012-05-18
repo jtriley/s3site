@@ -111,7 +111,7 @@ class S3SiteCLI(object):
                 for n in sc.names:
                     assert n not in self.subcmds_map
                     self.subcmds_map[n] = sc
-            max_len = len(max(subcmd_descriptions.splitlines()))
+            max_len = max([len(l) for l in subcmd_descriptions.splitlines()])
             cmds_header = 'Commands: (pass --help to any command for '
             cmds_header += 'detailed usage)'
             gparser.usage += '\n\n%s\n' % cmds_header
