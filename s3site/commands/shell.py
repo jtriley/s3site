@@ -20,7 +20,7 @@ class CmdShell(CmdBase):
         pass
 
     def execute(self, args):
-        local_ns = dict(cfg=self.cfg, s3site=s3site, log=log)
+        local_ns = dict(cfg=self.cfg, s3site=s3site, s3=self.s3, log=log)
         modules = [(s3site.__name__ + '.' + module, module)
                    for module in s3site.__all__]
         modules += [('boto', 'boto')]

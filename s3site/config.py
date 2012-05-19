@@ -5,10 +5,26 @@ import ConfigParser
 
 from s3site import utils
 from s3site import static
+from s3site import awsutils
 from s3site import exception
 from s3site.logger import log
 
 DEBUG_CONFIG = False
+
+
+def get_config(config_file=None, cache=False):
+    """Factory for StarClusterConfig object"""
+    return S3SiteConfig(config_file, cache).load()
+
+
+def get_easy_s3(config_file=None, cache=False):
+    """
+    Factory for EasyS3 class that attempts to load AWS credentials from
+    the StarCluster config file. Returns an EasyS3 object if
+    successful.
+    """
+    cfg = get_config(config_file, cache)
+    return cfg.get_easy_s3()
 
 
 class S3SiteConfig(object):
@@ -406,6 +422,20 @@ class S3SiteConfig(object):
         # first override with environment settings if they exist
         self.aws.update(self.get_aws_from_environ())
         return self.aws
+
+    def get_easy_s3(self):
+        """
+        Factory for EasyEC2 class that attempts to load AWS credentials from
+        the StarCluster config file. Returns an EasyS3 object if
+        successful.
+        """
+        aws = self.get_aws_credentials()
+        try:
+            s3 = awsutils.EasyS3(**aws)
+            return s3
+        except TypeError:
+            raise exception.ConfigError("no aws credentials found")
+
 
 
 if __name__ == "__main__":
