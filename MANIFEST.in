@@ -1,0 +1,5 @@
+include COPYING
+include COPYING.LESSER
+include README.rst
+include *.py
+recursive-include scripts *
