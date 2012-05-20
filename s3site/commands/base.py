@@ -24,8 +24,8 @@ class CmdBase(optcomplete.CmdComplete):
     gparser = None
     subcmds_map = None
     _cfg = None
-    _ec2 = None
     _s3 = None
+    _cf = None
     _cm = None
     _nm = None
 
@@ -80,6 +80,12 @@ class CmdBase(optcomplete.CmdComplete):
         if not self._s3:
             self._s3 = self.cfg.get_easy_s3()
         return self._s3
+
+    @property
+    def cf(self):
+        if not self._cf:
+            self._cf = self.cfg.get_easy_cf()
+        return self._cf
 
     def addopts(self, parser):
         pass
