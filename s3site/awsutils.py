@@ -137,6 +137,20 @@ class EasyS3(EasyAWS):
         files = [file for file in bucket.list()]
         return files
 
+
+class EasyCF(EasyAWS):
+    def __init__(self, aws_access_key_id, aws_secret_access_key, aws_port=None,
+                 aws_proxy=None, aws_proxy_port=None, host='cloudfront.amazonaws.com',
+                 **kwargs):
+        kwargs = dict(port=aws_port, proxy=aws_proxy,
+                      proxy_port=aws_proxy_port)
+        super(EasyCF, self).__init__(aws_access_key_id, aws_secret_access_key,
+                                     boto.connect_cloudfront, **kwargs)
+
+    def __repr__(self):
+        return '<EasyCF: %s>' % self.conn.server_name()
+
+
 if __name__ == "__main__":
     from starcluster.config import get_easy_ec2
     ec2 = get_easy_ec2()
