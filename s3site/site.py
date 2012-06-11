@@ -1,5 +1,8 @@
+import time
+
 from boto.exception import S3ResponseError
 
+from s3site import spinner
 from s3site import exception
 from s3site.logger import log
 
@@ -43,8 +46,17 @@ class SiteManager(object):
         site = self.get_site(name)
         dists = self.cf.get_all_dists_for_bucket(site.bucket)
         for d in dists:
-            log.info("Deleting CloudFront distribution: %s" % d.id)
-            d.delete()
+            log.info("Deleting CloudFront distribution: %s" % d.id,
+                     extra=dict(__nonl__=True))
+            s = spinner.Spinner()
+            s.start()
+            dist = d.get_distribution()
+            dist.disable()
+            while dist.status == 'InProgress':
+                time.sleep(30)
+                dist = d.get_distribution()
+            s.stop()
+            dist.delete()
         self.s3.delete_bucket(site.bucket)
 
     def get_all_sites(self):
