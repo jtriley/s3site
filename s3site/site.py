@@ -84,9 +84,9 @@ class SiteManager(object):
             print site.name
             print header
             print 'S3 Website URL: %s' % s3_web_url
-            webconfig = site.webconfig.get("WebsiteConfiguration")
-            index_file = webconfig.get("IndexDocument").get("Suffix")
-            error_file = webconfig.get("ErrorDocument").get("Key")
+            webcfg = site.webconfig.get("WebsiteConfiguration")
+            index_file = webcfg.get("IndexDocument", {}).get("Suffix", 'N/A')
+            error_file = webcfg.get("ErrorDocument", {}).get("Key", 'N/A')
             print 'Index file: %s' % index_file
             print 'Error file: %s' % error_file
             if sdists:
