@@ -7,7 +7,7 @@ class CmdList(CmdBase):
 
     List all currently configured static websites on S3
     """
-    names = ['list', 'l']
+    names = ['list', 'ls']
 
     def execute(self, args):
-        pass
+        self.sm.list_all_sites()

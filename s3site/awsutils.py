@@ -150,6 +150,9 @@ class EasyCF(EasyAWS):
     def __repr__(self):
         return '<EasyCF: %s>' % self.conn.server_name()
 
+    def get_all_distributions(self):
+        return self.conn.get_all_distributions()
+
 
 if __name__ == "__main__":
     from starcluster.config import get_easy_ec2
