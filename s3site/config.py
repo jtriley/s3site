@@ -26,6 +26,7 @@ def get_easy_s3(config_file=None, cache=False):
     cfg = get_config(config_file, cache)
     return cfg.get_easy_s3()
 
+
 def get_easy_cf(config_file=None, cache=False):
     """
     Factory for EasyS3 class that attempts to load AWS credentials from
