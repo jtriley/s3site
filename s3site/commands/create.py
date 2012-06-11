@@ -18,7 +18,7 @@ class CmdCreate(CmdBase):
                           action="store", default="",
                           help="file to use for error page")
         parser.add_option("-c", "--cloudfront", dest="create_cf_domain",
-                          action="store_true", default=False,
+                          action="store_true", default=None,
                           help="create a new CloudFront domain for site")
         parser.add_option("-C", "--cloudfront-cname", dest="cf_domain_cnames",
                           action="append", type="str", default=None,
