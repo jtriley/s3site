@@ -1,9 +1,14 @@
+import os
+import glob
 import time
+import hashlib
+import mimetypes
 
 from boto.exception import S3ResponseError
 
 from s3site import spinner
 from s3site import exception
+from s3site import progressbar
 from s3site.logger import log
 
 
@@ -95,6 +100,10 @@ class SiteManager(object):
                 print '   - %s (%s)' % (sdist.id, sdist.domain_name)
             print
 
+    def sync(self, site_name, root_dir):
+        site = self.get_site(site_name)
+        return site.sync(root_dir)
+
 
 class Site(object):
     def __init__(self, bucket, s3, cf, webconfig=None):
@@ -102,7 +111,70 @@ class Site(object):
         self.webconfig = webconfig or bucket.get_website_configuration()
         self.s3 = s3
         self.cf = cf
+        self._progress_bar = None
 
     @property
     def name(self):
         return self.bucket.name
+
+    @property
+    def progress_bar(self):
+        if not self._progress_bar:
+            widgets = ['', progressbar.Fraction(), ' ',
+                       progressbar.Bar(marker=progressbar.RotatingMarker()),
+                       ' ', progressbar.Percentage(), ' ', ' ']
+            pbar = progressbar.ProgressBar(widgets=widgets, force_update=True)
+            self._progress_bar = pbar
+        return self._progress_bar
+
+    def _find_files(self, path):
+        for cfile in glob.glob(os.path.join(path, '*')):
+            if os.path.isdir(cfile):
+                for py in self._find_files(cfile):
+                    yield py
+            else:
+                yield cfile
+
+    def _compute_md5(self, path):
+        md5 = hashlib.md5()
+        f = open(path)
+        while True:
+            data = f.read(8192)
+            if not data:
+                break
+            md5.update(data)
+        return md5.hexdigest()
+
+    def get_bucket_files(self):
+        return dict([(k.name, k) for k in self.bucket.list()])
+
+    def _s3_upload_progress(self, current, total):
+        pb = self.progress_bar
+        pb.maxval = total
+        pb.update(current)
+
+    def _upload_file_to_site(self, path, s3path):
+        key = self.bucket.new_key(s3path)
+        key.content_type = mimetypes.guess_type(path)
+        self.progress_bar.reset()
+        key.set_contents_from_filename(path, policy='public-read',
+                                       cb=self._s3_upload_progress)
+        self.progress_bar.reset()
+
+    def sync(self, rootdir):
+        log.info("Syncing '%s' with '%s'" % (self.name, rootdir))
+        log.info("Fetching list of files in S3 bucket: %s" % self.name)
+        s3files = self.get_bucket_files()
+        for i in self._find_files(rootdir):
+            s3path = os.path.relpath(i, rootdir)
+            if s3path in s3files:
+                etag = s3files.get(s3path).etag.replace('"', '')
+                md5 = self._compute_md5(i)
+                log.debug('s3 path found: %s with etag: %s' % (s3path, etag))
+                if etag != md5:
+                    log.info("Existing S3 path '%s' is NOT in sync" % s3path)
+                    self._upload_file_to_site(i, s3path)
+            else:
+                log.info("Local file '%s' not on S3...uploading" % i)
+                self._upload_file_to_site(i, s3path)
+        log.info("Successfully synced site: %s" % self.name)
