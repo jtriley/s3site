@@ -21,6 +21,24 @@ class SiteManager(object):
         except (exception.BucketDoesNotExist, S3ResponseError):
             pass
 
+    def create_site(self, name, index_doc="index.html", error_doc="",
+                    headers=None, create_cf_domain=False,
+                    enable_cf_domain=True, cf_domain_cnames=None,
+                    cf_domain_comment=None, cf_trusted_signers=None):
+        site_bucket = self.s3.get_bucket_or_none(name)
+        if site_bucket:
+            raise exception.SiteAlreadyExists(name)
+        site_bucket = self.s3.create_bucket(name)
+        site_bucket.configure_website(suffix=index_doc, error_key=error_doc,
+                                      headers=None)
+        if create_cf_domain:
+            self.cf.create_distribution(
+                origin=site_bucket.get_website_endpoint(),
+                enabled=enable_cf_domain,
+                cnames=cf_domain_cnames, comment=cf_domain_comment,
+                trusted_signers=cf_trusted_signers)
+        return site_bucket
+
     def get_all_sites(self):
         buckets = self.s3.get_buckets()
         sites = []

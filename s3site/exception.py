@@ -72,3 +72,8 @@ class BucketAlreadyExists(AWSError):
 class BucketDoesNotExist(AWSError):
     def __init__(self, bucket_name):
         self.msg = "bucket '%s' does not exist" % bucket_name
+
+
+class SiteAlreadyExists(BaseException):
+    def __init__(self, site_name):
+        self.msg = "site '%s' already exists" % site_name

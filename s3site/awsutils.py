@@ -4,6 +4,7 @@ EC2/S3 Utility Classes
 
 import boto
 import boto.s3.connection
+from boto.cloudfront.origin import CustomOrigin
 
 from s3site import exception
 from s3site.logger import log
@@ -71,6 +72,7 @@ class EasyS3(EasyAWS):
         """
         bucket_name = bucket_name.split('/')[0]
         try:
+            log.info("Creating new bucket: %s" % bucket_name)
             return self.conn.create_bucket(bucket_name)
         except boto.exception.S3CreateError, e:
             if e.error_code == "BucketAlreadyExists":
@@ -140,8 +142,8 @@ class EasyS3(EasyAWS):
 
 class EasyCF(EasyAWS):
     def __init__(self, aws_access_key_id, aws_secret_access_key, aws_port=None,
-                 aws_proxy=None, aws_proxy_port=None, host='cloudfront.amazonaws.com',
-                 **kwargs):
+                 aws_proxy=None, aws_proxy_port=None,
+                 host='cloudfront.amazonaws.com', **kwargs):
         kwargs = dict(port=aws_port, proxy=aws_proxy,
                       proxy_port=aws_proxy_port)
         super(EasyCF, self).__init__(aws_access_key_id, aws_secret_access_key,
@@ -152,6 +154,17 @@ class EasyCF(EasyAWS):
 
     def get_all_distributions(self):
         return self.conn.get_all_distributions()
+
+    def create_distribution(self, origin, enabled, caller_reference='',
+                            cnames=None, comment='', trusted_signers=None):
+        origin = CustomOrigin(dns_name=origin,
+                              origin_protocol_policy="http-only")
+        dist = self.conn.create_distribution(origin, enabled,
+                                             caller_reference=caller_reference,
+                                             cnames=cnames, comment=comment,
+                                             trusted_signers=trusted_signers)
+        log.info("New CloudFront distribution created: %s" % dist.id)
+        return dist
 
 
 if __name__ == "__main__":
