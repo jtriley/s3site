@@ -79,6 +79,12 @@ class EasyS3(EasyAWS):
                 raise exception.BucketAlreadyExists(bucket_name)
             raise
 
+    def delete_bucket(self, bucket):
+        log.info("Deleting all files in bucket: %s" % bucket.name)
+        bucket.delete_keys([f.name for f in bucket.list()])
+        log.info("Deleting bucket: %s" % bucket.name)
+        bucket.delete()
+
     def bucket_exists(self, bucket_name):
         """
         Check if bucket_name exists on S3
@@ -154,6 +160,11 @@ class EasyCF(EasyAWS):
 
     def get_all_distributions(self):
         return self.conn.get_all_distributions()
+
+    def get_all_dists_for_bucket(self, bucket):
+        web_endpoint = bucket.get_website_endpoint()
+        return [d for d in self.get_all_distributions()
+                if d.origin.dns_name == web_endpoint]
 
     def create_distribution(self, origin, enabled, caller_reference='',
                             cnames=None, comment='', trusted_signers=None):

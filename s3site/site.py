@@ -39,6 +39,14 @@ class SiteManager(object):
                 trusted_signers=cf_trusted_signers)
         return site_bucket
 
+    def delete_site(self, name):
+        site = self.get_site(name)
+        dists = self.cf.get_all_dists_for_bucket(site.bucket)
+        for d in dists:
+            log.info("Deleting CloudFront distribution: %s" % d.id)
+            d.delete()
+        self.s3.delete_bucket(site.bucket)
+
     def get_all_sites(self):
         buckets = self.s3.get_buckets()
         sites = []
