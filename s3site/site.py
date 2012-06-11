@@ -93,6 +93,7 @@ class SiteManager(object):
                 print 'CloudFront Distributions:'
             for sdist in sdists:
                 print '   - %s (%s)' % (sdist.id, sdist.domain_name)
+            print
 
 
 class Site(object):
