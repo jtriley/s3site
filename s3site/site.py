@@ -56,7 +56,8 @@ class SiteManager(object):
             s = spinner.Spinner()
             s.start()
             dist = d.get_distribution()
-            dist.disable()
+            if dist.enabled:
+                dist.disable()
             while dist.status == 'InProgress':
                 time.sleep(30)
                 dist = d.get_distribution()
