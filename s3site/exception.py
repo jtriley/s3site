@@ -57,3 +57,18 @@ class ConfigSectionMissing(ConfigError):
 class ConfigHasNoSections(ConfigError):
     def __init__(self, cfg_file):
         self.msg = "No valid sections defined in config file %s" % cfg_file
+
+
+class AWSError(BaseException):
+    """Base exception for all AWS related errors"""
+
+
+class BucketAlreadyExists(AWSError):
+    def __init__(self, bucket_name):
+        self.msg = "bucket with name '%s' already exists on S3\n" % bucket_name
+        self.msg += "(NOTE: S3's bucket namespace is shared by all AWS users)"
+
+
+class BucketDoesNotExist(AWSError):
+    def __init__(self, bucket_name):
+        self.msg = "bucket '%s' does not exist" % bucket_name

@@ -2,6 +2,8 @@ import os
 import sys
 import time
 import signal
+
+from s3site import site
 from s3site import optcomplete
 from s3site.logger import log
 
@@ -26,8 +28,7 @@ class CmdBase(optcomplete.CmdComplete):
     _cfg = None
     _s3 = None
     _cf = None
-    _cm = None
-    _nm = None
+    _sm = None
 
     @property
     def comp_words(self):
@@ -86,6 +87,12 @@ class CmdBase(optcomplete.CmdComplete):
         if not self._cf:
             self._cf = self.cfg.get_easy_cf()
         return self._cf
+
+    @property
+    def sm(self):
+        if not self._sm:
+            self._sm = site.SiteManager(s3=self.s3, cf=self.cf, cfg=self.cfg)
+        return self._sm
 
     def addopts(self, parser):
         pass
