@@ -2,10 +2,15 @@
 Utils module for s3site
 """
 import os
+import re
 import hashlib
 import urlparse
 
+from s3site import exception
 from s3site.logger import log
+
+
+MSWIN_DRIVE_LETTER_RE = re.compile('^([a-z][A-Z]:)')
 
 try:
     import IPython
@@ -80,3 +85,7 @@ def compute_md5(path):
             break
         md5.update(data)
     return md5.hexdigest()
+
+
+def strip_windows_drive_letter(path):
+    return MSWIN_DRIVE_LETTER_RE.sub('', path)

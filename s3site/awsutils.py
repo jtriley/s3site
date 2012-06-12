@@ -2,7 +2,6 @@
 EC2/S3 Utility Classes
 """
 import os
-import re
 import posixpath
 import mimetypes
 
@@ -179,8 +178,7 @@ class EasyS3(EasyAWS):
 
     def _local_to_s3_path(self, path):
         # remove Windows driver letters (if any)
-        r = re.compile('^([a-z][A-Z]:)')
-        path = r.sub('', path)
+        path = utils.strip_windows_drive_letter(path)
         # split path based on OS path separator
         parts = path.split(os.path.sep)
         # join using unix path separator to match S3
