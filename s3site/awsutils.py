@@ -1,12 +1,16 @@
 """
 EC2/S3 Utility Classes
 """
+import os
+import mimetypes
 
 import boto
 import boto.s3.connection
 from boto.cloudfront.origin import CustomOrigin
 
+from s3site import utils
 from s3site import exception
+from s3site import progressbar
 from s3site.logger import log
 
 
@@ -61,9 +65,20 @@ class EasyS3(EasyAWS):
             kwargs.update(dict(calling_format=self._calling_format))
         super(EasyS3, self).__init__(aws_access_key_id, aws_secret_access_key,
                                      boto.connect_s3, **kwargs)
+        self._progress_bar = None
 
     def __repr__(self):
         return '<EasyS3: %s>' % self.conn.server_name()
+
+    @property
+    def progress_bar(self):
+        if not self._progress_bar:
+            widgets = ['', progressbar.Fraction(), ' ',
+                       progressbar.Bar(marker=progressbar.RotatingMarker()),
+                       ' ', progressbar.Percentage(), ' ', ' ']
+            pbar = progressbar.ProgressBar(widgets=widgets, force_update=True)
+            self._progress_bar = pbar
+        return self._progress_bar
 
     def create_bucket(self, bucket_name):
         """
@@ -140,11 +155,41 @@ class EasyS3(EasyAWS):
         for bucket in self.get_buckets():
             print bucket.name
 
-    def get_bucket_files(self, bucketname):
-        bucket = self.get_bucket(bucketname)
+    def get_bucket_files(self, bucket):
         files = [file for file in bucket.list()]
         return files
 
+    def get_bucket_files_map(self, bucket):
+        return dict([(k.name, k) for k in bucket.list()])
+
+    def _s3_upload_progress(self, current, total):
+        pb = self.progress_bar
+        pb.maxval = total
+        pb.update(current)
+
+    def put_file(self, path, bucket, bucket_path):
+        key = bucket.new_key(bucket_path)
+        key.content_type = mimetypes.guess_type(path)
+        self.progress_bar.reset()
+        key.set_contents_from_filename(path, policy='public-read',
+                                       cb=self._s3_upload_progress)
+        self.progress_bar.reset()
+
+    def sync_bucket(self, rootdir, bucket):
+        log.info("Fetching list of files in S3 bucket: %s" % bucket.name)
+        s3files = self.get_bucket_files_map(bucket)
+        for f in utils.find_files(rootdir):
+            s3path = os.path.relpath(f, rootdir)
+            if s3path in s3files:
+                etag = s3files.get(s3path).etag.replace('"', '')
+                md5 = utils.compute_md5(f)
+                log.debug('s3 path found: %s with etag: %s' % (s3path, etag))
+                if etag != md5:
+                    log.info("Existing S3 path '%s' is NOT in sync" % s3path)
+                    self.put_file(f, bucket, s3path)
+            else:
+                log.info("Local file '%s' not on S3...uploading" % f)
+                self.put_file(f, bucket, s3path)
 
 class EasyCF(EasyAWS):
     def __init__(self, aws_access_key_id, aws_secret_access_key, aws_port=None,

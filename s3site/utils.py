@@ -1,6 +1,9 @@
 """
 Utils module for s3site
 """
+import os
+import glob
+import hashlib
 import urlparse
 
 from s3site.logger import log
@@ -57,3 +60,23 @@ class AttributeDict(dict):
             return self.__getitem__(name)
         except KeyError:
             return super(AttributeDict, self).__getattribute__(name)
+
+
+def find_files(path):
+    for cfile in glob.glob(os.path.join(path, '*')):
+        if os.path.isdir(cfile):
+            for py in find_files(cfile):
+                yield py
+        else:
+            yield cfile
+
+
+def compute_md5(path):
+    md5 = hashlib.md5()
+    f = open(path)
+    while True:
+        data = f.read(8192)
+        if not data:
+            break
+        md5.update(data)
+    return md5.hexdigest()
