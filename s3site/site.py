@@ -117,13 +117,18 @@ class SiteManager(object):
     def get_all_sites(self):
         buckets = self.s3.get_buckets()
         sites = []
-        for bucket in buckets:
-            try:
-                webconfig = bucket.get_website_configuration()
-                site = Site(bucket, self.s3, self.cf, webconfig=webconfig)
+        if len(buckets) == 0:
+            return sites
+        log.info('Scanning for s3site buckets...')
+        pbar = self.progress_bar.reset()
+        pbar.maxval = len(buckets)
+        for i, bucket in enumerate(buckets):
+            pbar.update(i)
+            if bucket.get_key(static.S3SITE_META_FILE):
+                site = Site(bucket, self.s3, self.cf)
                 sites.append(site)
-            except S3ResponseError:
-                continue
+        pbar.finish()
+        log.info('%d site(s) found\n' % len(sites))
         return sites
 
     def list_all_sites(self, sites=None):
