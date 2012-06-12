@@ -2,6 +2,8 @@
 EC2/S3 Utility Classes
 """
 import os
+import re
+import posixpath
 import mimetypes
 
 import boto
@@ -175,11 +177,20 @@ class EasyS3(EasyAWS):
                                        cb=self._s3_upload_progress)
         self.progress_bar.reset()
 
+    def _local_to_s3_path(self, path):
+        # remove Windows driver letters (if any)
+        r = re.compile('^([a-z][A-Z]:)')
+        path = r.sub('', path)
+        # split path based on OS path separator
+        parts = path.split(os.path.sep)
+        # join using unix path separator to match S3
+        return posixpath.sep.join(parts)
+
     def sync_bucket(self, rootdir, bucket):
         log.info("Fetching list of files in S3 bucket: %s" % bucket.name)
         s3files = self.get_bucket_files_map(bucket)
         for f in utils.find_files(rootdir):
-            s3path = os.path.relpath(f, rootdir)
+            s3path = self._local_to_s3_path(os.path.relpath(f, rootdir))
             if s3path in s3files:
                 etag = s3files.get(s3path).etag.replace('"', '')
                 md5 = utils.compute_md5(f)
