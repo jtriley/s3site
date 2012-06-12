@@ -18,6 +18,17 @@ class SiteManager(object):
         self.s3 = s3
         self.cf = cf
         self.cfg = cfg
+        self._progress_bar = None
+
+    @property
+    def progress_bar(self):
+        if not self._progress_bar:
+            widgets = ['', progressbar.Fraction(), ' ',
+                       progressbar.Bar(marker=progressbar.RotatingMarker()),
+                       ' ', progressbar.Percentage(), ' ', ' ']
+            pbar = progressbar.ProgressBar(widgets=widgets, force_update=True)
+            self._progress_bar = pbar
+        return self._progress_bar
 
     def get_site(self, name):
         site_bucket = self.s3.get_bucket(name)
