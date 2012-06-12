@@ -2,7 +2,6 @@
 Utils module for s3site
 """
 import os
-import glob
 import hashlib
 import urlparse
 
@@ -63,12 +62,13 @@ class AttributeDict(dict):
 
 
 def find_files(path):
-    for cfile in glob.glob(os.path.join(path, '*')):
-        if os.path.isdir(cfile):
-            for py in find_files(cfile):
-                yield py
-        else:
-            yield cfile
+    path = os.path.expanduser(path)
+    for root, dirs, files in os.walk(path):
+        for f in files:
+            yield os.path.join(root, f)
+        for d in dirs:
+            for f in find_files(d):
+                yield f
 
 
 def compute_md5(path):
