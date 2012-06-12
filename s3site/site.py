@@ -20,8 +20,7 @@ class SiteManager(object):
 
     def get_site(self, name):
         site_bucket = self.s3.get_bucket(name)
-        webconfig = site_bucket.get_website_configuration()
-        return Site(site_bucket, self.s3, self.cf, webconfig=webconfig)
+        return Site(site_bucket, self.s3, self.cf)
 
     def get_site_or_none(self, name):
         try:
@@ -112,10 +111,16 @@ class SiteManager(object):
 class Site(object):
     def __init__(self, bucket, s3, cf, webconfig=None):
         self.bucket = bucket
-        self.webconfig = webconfig or bucket.get_website_configuration()
         self.s3 = s3
         self.cf = cf
+        self._webconfig = webconfig
         self._progress_bar = None
+
+    @property
+    def webconfig(self):
+        if not self._webconfig:
+            self._webconfig = self.bucket.get_website_configuration()
+        return self._webconfig
 
     @property
     def name(self):
