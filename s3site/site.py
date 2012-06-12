@@ -90,7 +90,7 @@ class SiteManager(object):
         dists = self.cf.get_all_dists_for_bucket(site.bucket)
         for d in dists:
             log.info("Deleting CloudFront distribution: %s" % d.id,
-                     extra=dict(__nonl__=True))
+                     extra=dict(__nonewline__=True))
             s = spinner.Spinner()
             s.start()
             dist = d.get_distribution()
