@@ -11,6 +11,7 @@ PID = os.getpid()
 S3SITE_CFG_DIR = os.path.join(os.path.expanduser('~'), '.s3site')
 S3SITE_CFG_FILE = os.path.join(S3SITE_CFG_DIR, 'config')
 S3SITE_LOG_DIR = os.path.join(S3SITE_CFG_DIR, 'logs')
+S3SITE_META_FILE = '__s3site.cfg'
 DEBUG_FILE = os.path.join(S3SITE_LOG_DIR, 'debug.log')
 AWS_DEBUG_FILE = os.path.join(S3SITE_LOG_DIR, 'aws-debug.log')
 CRASH_FILE = os.path.join(S3SITE_LOG_DIR, 'crash-report-%d.txt' % PID)
