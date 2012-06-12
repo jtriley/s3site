@@ -77,9 +77,12 @@ class SiteManager(object):
                 continue
         return sites
 
-    def list_all_sites(self):
+    def list_all_sites(self, sites=None):
         dists = self.cf.get_all_distributions()
-        sites = self.get_all_sites()
+        if sites:
+            sites = [self.get_site(s) for s in sites]
+        else:
+            sites = self.get_all_sites()
         header = '*' * 60
         if not sites:
             log.info("No sites found.")

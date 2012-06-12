@@ -10,4 +10,4 @@ class CmdList(CmdBase):
     names = ['list', 'ls']
 
     def execute(self, args):
-        self.sm.list_all_sites()
+        self.sm.list_all_sites(args)
