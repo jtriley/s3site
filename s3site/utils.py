@@ -67,6 +67,8 @@ class AttributeDict(dict):
 
 
 def find_files(path):
+    if not os.path.isdir(path):
+        raise exception.BaseException("'%s' is not a directory" % path)
     path = os.path.expanduser(path)
     for root, dirs, files in os.walk(path):
         for f in files:
