@@ -132,7 +132,6 @@ class SiteManager(object):
         return sites
 
     def list_all_sites(self, sites=None):
-        dists = self.cf.get_all_distributions()
         if sites:
             sites = [self.get_site(s) for s in sites]
         else:
@@ -141,21 +140,25 @@ class SiteManager(object):
         if not sites:
             log.info("No sites found.")
         for site in sites:
+            webcfg = site.webconfig.get("WebsiteConfiguration")
             s3_web_url = site.bucket.get_website_endpoint()
-            sdists = [d for d in dists if d.origin.dns_name == s3_web_url]
+            index_file = webcfg.get("IndexDocument", {}).get("Suffix", 'N/A')
+            error_file = webcfg.get("ErrorDocument", {}).get("Key", 'N/A')
+            cfdist = site.cfdist
             print header
             print site.name
             print header
             print 'S3 Website URL: %s' % s3_web_url
-            webcfg = site.webconfig.get("WebsiteConfiguration")
-            index_file = webcfg.get("IndexDocument", {}).get("Suffix", 'N/A')
-            error_file = webcfg.get("ErrorDocument", {}).get("Key", 'N/A')
             print 'Index file: %s' % index_file
             print 'Error file: %s' % error_file
-            if sdists:
-                print 'CloudFront Distributions:'
-            for sdist in sdists:
-                print '   - %s (%s)' % (sdist.id, sdist.domain_name)
+            if cfdist:
+                cfdist = cfdist.get_distribution()
+                print 'CloudFront Distribution:'
+                print '   - Id: %s' % cfdist.id
+                print '   - Domain: %s' % cfdist.domain_name
+                print '   - Enabled: %s' % cfdist.config.enabled
+                for cname in cfdist.config.cnames:
+                    print '   - CNAME: %s' % cname
             print
 
     def sync(self, site_name, root_dir):
