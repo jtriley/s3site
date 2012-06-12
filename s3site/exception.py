@@ -74,6 +74,6 @@ class BucketDoesNotExist(AWSError):
         self.msg = "bucket '%s' does not exist" % bucket_name
 
 
-class SiteAlreadyExists(BaseException):
-    def __init__(self, site_name):
-        self.msg = "site '%s' already exists" % site_name
+class DistributionDoesNotExist(AWSError):
+    def __init__(self, id):
+        self.msg = "CloudFront distribution '%s' does not exists" % id

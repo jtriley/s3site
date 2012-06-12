@@ -158,6 +158,13 @@ class EasyCF(EasyAWS):
     def __repr__(self):
         return '<EasyCF: %s>' % self.conn.server_name()
 
+    def get_distribution_by_id(self, id):
+        dists = self.get_all_distributions()
+        for dist in dists:
+            if dist.id == id:
+                return dist
+        raise exception.DistributionDoesNotExist(id)
+
     def get_all_distributions(self):
         return self.conn.get_all_distributions()
 
