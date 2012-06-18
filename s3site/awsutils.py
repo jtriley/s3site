@@ -202,6 +202,33 @@ class EasyS3(EasyAWS):
                 log.info("Local file '%s' not on S3...uploading" % f)
                 self.put_file(f, bucket, s3path)
 
+    def download_bucket_file(self, bucket_key, local_path):
+        pbar = self.progress_bar
+        pbar.reset()
+        log.info("Downloading: %s" % bucket_key.name)
+        res = bucket_key.get_contents_to_filename(local_path,
+                                                  cb=self._s3_upload_progress)
+        pbar.reset()
+        return res
+
+    def download_bucket(self, bucket, output_dir):
+        if not os.path.isdir(output_dir):
+            raise exception.BaseException("'%s' is not a directory" %
+                                          output_dir)
+        output_dir = os.path.join(output_dir, bucket.name)
+        if os.path.isdir(output_dir):
+            raise exception.BaseException("'%s' already exists" % output_dir)
+        s3files = self.get_bucket_files_map(bucket)
+        log.info("Downloading %d files from bucket '%s':" % (len(s3files),
+                                                             bucket.name))
+        for key, obj in s3files.items():
+            local_path = os.path.join(output_dir, key)
+            parent_dir = os.path.dirname(local_path)
+            if not os.path.isdir(parent_dir):
+                os.makedirs(parent_dir)
+            self.download_bucket_file(obj, local_path)
+
+
 class EasyCF(EasyAWS):
     def __init__(self, aws_access_key_id, aws_secret_access_key, aws_port=None,
                  aws_proxy=None, aws_proxy_port=None,

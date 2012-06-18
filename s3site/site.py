@@ -162,6 +162,10 @@ class SiteManager(object):
         site = self.get_site(site_name)
         return site.sync(root_dir)
 
+    def clone_site(self, site_name, output_dir=None):
+        site = self.get_site(site_name)
+        return site.clone(output_dir=output_dir)
+
 
 class Site(object):
     def __init__(self, bucket, s3, cf, webconfig=None):
@@ -200,3 +204,9 @@ class Site(object):
         log.info("Syncing '%s' with '%s'" % (self.name, rootdir))
         self.s3.sync_bucket(rootdir, self.bucket)
         log.info("Successfully synced site: %s" % self.name)
+
+    def clone(self, output_dir=None):
+        odir = output_dir or os.getcwd()
+        log.info("Cloning site '%s' to '%s'" % (self.name, odir))
+        self.s3.download_bucket(self.bucket, odir)
+        log.info("Successfully cloned site '%s'" % self.name)
