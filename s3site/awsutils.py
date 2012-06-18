@@ -74,9 +74,9 @@ class EasyS3(EasyAWS):
     @property
     def progress_bar(self):
         if not self._progress_bar:
-            widgets = ['', progressbar.Fraction(), ' ',
+            widgets = [progressbar.Fraction(), ' ',
                        progressbar.Bar(marker=progressbar.RotatingMarker()),
-                       ' ', progressbar.Percentage(), ' ', ' ']
+                       ' ', progressbar.Percentage(), ' ', progressbar.ETA()]
             pbar = progressbar.ProgressBar(widgets=widgets, force_update=True)
             self._progress_bar = pbar
         return self._progress_bar
