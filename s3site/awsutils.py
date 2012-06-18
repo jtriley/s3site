@@ -171,17 +171,20 @@ class EasyS3(EasyAWS):
         pb.update(current)
 
     def put_file(self, path, bucket, bucket_path, policy=None,
-                 pre_upload_cb=None):
+                 pre_upload_cb=None, pretend=False):
         key = bucket.new_key(bucket_path)
         key.content_type = mimetypes.guess_type(path)
         if pre_upload_cb:
             key = pre_upload_cb(key) or key
-        pbar = self.progress_bar
-        pbar.reset()
-        log.info("Uploading file: %s" % path)
-        key.set_contents_from_filename(path, policy=policy,
-                                       cb=self._s3_upload_progress)
-        pbar.reset()
+        if not pretend:
+            pbar = self.progress_bar
+            pbar.reset()
+            log.info("Uploading file: %s" % path)
+            key.set_contents_from_filename(path, policy=policy,
+                                           cb=self._s3_upload_progress)
+            pbar.reset()
+        else:
+            log.info("Would upload file: %s" % path)
 
     def _local_to_s3_path(self, path):
         # remove Windows driver letters (if any)
