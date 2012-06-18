@@ -74,7 +74,7 @@ def find_files(path):
         for f in files:
             yield os.path.join(root, f)
         for d in dirs:
-            for f in find_files(d):
+            for f in find_files(os.path.join(root, d)):
                 yield f
 
 
