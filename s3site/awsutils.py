@@ -170,11 +170,11 @@ class EasyS3(EasyAWS):
         pb.maxval = total
         pb.update(current)
 
-    def put_file(self, path, bucket, bucket_path):
+    def put_file(self, path, bucket, bucket_path, policy=None)
         key = bucket.new_key(bucket_path)
         key.content_type = mimetypes.guess_type(path)
         self.progress_bar.reset()
-        key.set_contents_from_filename(path, policy='public-read',
+        key.set_contents_from_filename(path, policy=policy,
                                        cb=self._s3_upload_progress)
         self.progress_bar.reset()
 
@@ -197,10 +197,10 @@ class EasyS3(EasyAWS):
                 log.debug('s3 path found: %s with etag: %s' % (s3path, etag))
                 if etag != md5:
                     log.info("Existing S3 path '%s' is NOT in sync" % s3path)
-                    self.put_file(f, bucket, s3path)
+                    self.put_file(f, bucket, s3path, policy='public-read')
             else:
                 log.info("Local file '%s' not on S3...uploading" % f)
-                self.put_file(f, bucket, s3path)
+                self.put_file(f, bucket, s3path, policy='public-read')
 
     def download_bucket_file(self, bucket_key, local_path):
         pbar = self.progress_bar
