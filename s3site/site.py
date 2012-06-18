@@ -95,18 +95,18 @@ class SiteManager(object):
 
     def delete_site(self, name):
         site = self.get_site(name)
-        dists = self.cf.get_all_dists_for_bucket(site.bucket)
-        for d in dists:
-            log.info("Deleting CloudFront distribution: %s" % d.id,
+        cfdist = site.cfdist
+        if cfdist:
+            log.info("Deleting CloudFront distribution: %s" % cfdist.id,
                      extra=dict(__nonewline__=True))
             s = spinner.Spinner()
             s.start()
-            dist = d.get_distribution()
-            if d.enabled:
+            dist = cfdist.get_distribution()
+            if cfdist.enabled:
                 dist.disable()
             while dist.status == 'InProgress':
                 time.sleep(30)
-                dist = d.get_distribution()
+                dist = cfdist.get_distribution()
             s.stop()
             dist.delete()
         self.s3.delete_bucket(site.bucket)
