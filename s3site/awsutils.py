@@ -165,6 +165,8 @@ class EasyS3(EasyAWS):
 
     def _s3_upload_progress(self, current, total):
         pb = self.progress_bar
+        if total == 0:
+            total = 1
         pb.maxval = total
         pb.update(current)
 
