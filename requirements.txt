@@ -1,4 +1,4 @@
-boto==2.4.1
+boto==2.5.2
 ipython
 pudb
 pep8

@@ -12,7 +12,7 @@ try:
     console_scripts = ['s3site = s3site.cli:main']
     extra = dict(test_suite="s3site.tests",
                  tests_require="nose",
-                 install_requires=["boto==2.4.1"],
+                 install_requires=["boto>=2.5.2"],
                  include_package_data=True,
                  entry_points=dict(console_scripts=console_scripts),
                  zip_safe=False)
