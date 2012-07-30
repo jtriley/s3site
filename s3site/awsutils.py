@@ -67,9 +67,20 @@ class EasyS3(EasyAWS):
         super(EasyS3, self).__init__(aws_access_key_id, aws_secret_access_key,
                                      boto.connect_s3, **kwargs)
         self._progress_bar = None
+        self._cf = None
 
     def __repr__(self):
         return '<EasyS3: %s>' % self.conn.server_name()
+
+    @property
+    def cf(self):
+        if not self._cf:
+            self._cf = EasyCF(self.aws_access_key_id,
+                              self.aws_secret_access_key,
+                              aws_port=self.conn.port,
+                              aws_proxy=self.conn.proxy,
+                              aws_proxy_port=self.conn.proxy_port)
+        return self._cf
 
     @property
     def progress_bar(self):
