@@ -285,10 +285,3 @@ class EasyCF(EasyAWS):
                                              trusted_signers=trusted_signers)
         log.info("New CloudFront distribution created: %s" % dist.id)
         return dist
-
-
-if __name__ == "__main__":
-    from starcluster.config import get_easy_ec2
-    ec2 = get_easy_ec2()
-    ec2.list_all_instances()
-    ec2.list_registered_images()
