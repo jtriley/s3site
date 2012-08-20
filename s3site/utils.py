@@ -91,3 +91,20 @@ def compute_md5(path):
 
 def strip_windows_drive_letter(path):
     return MSWIN_DRIVE_LETTER_RE.sub('', path)
+
+
+def group_iter(iterator, n):
+    """
+    Transforms a sequence of values into a sequence of n-tuples
+    e.g. [1, 2, 3, 4, ...] => [(1, 2), (3, 4), ...] (when n == 2)
+    """
+    items = []
+    accumulator = []
+    for item in iterator:
+        accumulator.append(item)
+        if len(accumulator) == n:
+            items.append(accumulator)
+            accumulator = []
+    if accumulator:
+        items.append(accumulator)
+    return items

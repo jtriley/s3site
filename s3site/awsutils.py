@@ -205,8 +205,8 @@ class EasyS3(EasyAWS):
         # join using unix path separator to match S3
         return posixpath.sep.join(parts)
 
-    def sync_bucket(self, rootdir, bucket, files_filter=None,
-                    pre_upload_cb=None, pretend=False):
+    def sync_bucket(self, rootdir, bucket, cf_dist_id=None, files_filter=None,
+                    pre_upload_cb=None, cf_files_filter=None, pretend=False):
         log.info("Fetching list of files in S3 bucket: %s" % bucket.name)
         s3files = self.get_bucket_files_map(bucket)
         put_files_map = dict()
@@ -228,6 +228,20 @@ class EasyS3(EasyAWS):
         for f, s3path in put_files_map.items():
             self.put_file(f, bucket, s3path, pre_upload_cb=pre_upload_cb,
                           policy='public-read', pretend=pretend)
+        if not cf_dist_id:
+            return put_files_map
+        if cf_files_filter:
+            put_files_map = cf_files_filter(put_files_map) or put_files_map
+        cfd = self.cf.get_distribution_info(cf_dist_id)
+        root_index = cfd.config.default_root_object
+        for s3paths in utils.group_iter(put_files_map.values(), n=1000):
+            for s3path in s3paths:
+                bname = posixpath.basename(s3path)
+                if bname == root_index:
+                    slash = posixpath.dirname(s3path) + posixpath.sep
+                    s3paths.append(slash)
+            s3paths.sort()
+            self.cf.invalidate_paths(cfd.id, s3paths)
 
     def download_bucket_file(self, bucket_key, local_path):
         pbar = self.progress_bar
@@ -275,6 +289,9 @@ class EasyCF(EasyAWS):
                 return dist
         raise exception.DistributionDoesNotExist(id)
 
+    def get_distribution_info(self, cf_dist_id):
+        return self.conn.get_distribution_info(cf_dist_id)
+
     def get_all_distributions(self):
         return self.conn.get_all_distributions()
 
@@ -293,3 +310,10 @@ class EasyCF(EasyAWS):
                                              trusted_signers=trusted_signers)
         log.info("New CloudFront distribution created: %s" % dist.id)
         return dist
+
+    def invalidate_paths(self, dist_id, paths):
+        if len(paths) > 1000:
+            raise ValueError("Too many (>1000) paths to invalidate!")
+        for path in paths:
+            log.info("Invalidating path: %s" % path)
+        return self.conn.create_invalidation_request(dist_id, paths)
