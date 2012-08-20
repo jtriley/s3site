@@ -3,6 +3,7 @@ import time
 
 from boto.exception import S3ResponseError
 
+from s3site import config
 from s3site import static
 from s3site import spinner
 from s3site import exception
@@ -12,9 +13,9 @@ from s3site.logger import log
 
 class SiteManager(object):
     def __init__(self, s3=None, cf=None, cfg=None):
-        self.s3 = s3
-        self.cf = cf
-        self.cfg = cfg
+        self.cfg = cfg or config.S3SiteConfig().load()
+        self.s3 = s3 or self.cfg.get_easy_s3()
+        self.cf = cf or self.cfg.get_easy_cf()
         self._progress_bar = None
 
     @property
