@@ -158,9 +158,11 @@ class SiteManager(object):
                     print '   - CNAME: %s' % cname
             print
 
-    def sync(self, site_name, root_dir):
+    def sync(self, site_name, root_dir, files_filter=None, pre_upload_cb=None,
+             pretend=False):
         site = self.get_site(site_name)
-        return site.sync(root_dir)
+        return site.sync(root_dir, files_filter=files_filter,
+                         pre_upload_cb=pre_upload_cb, pretend=pretend)
 
     def clone_site(self, site_name, output_dir=None):
         site = self.get_site(site_name)
@@ -200,10 +202,15 @@ class Site(object):
     def name(self):
         return self.bucket.name
 
-    def sync(self, rootdir):
+    def sync(self, rootdir, files_filter=None, pre_upload_cb=None,
+             pretend=False):
         log.info("Syncing '%s' with '%s'" % (self.name, rootdir))
-        self.s3.sync_bucket(rootdir, self.bucket)
+        files_map = self.s3.sync_bucket(rootdir, self.bucket,
+                                        files_filter=files_filter,
+                                        pre_upload_cb=pre_upload_cb,
+                                        pretend=pretend)
         log.info("Successfully synced site: %s" % self.name)
+        return files_map
 
     def clone(self, output_dir=None):
         odir = output_dir or os.getcwd()

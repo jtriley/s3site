@@ -205,21 +205,29 @@ class EasyS3(EasyAWS):
         # join using unix path separator to match S3
         return posixpath.sep.join(parts)
 
-    def sync_bucket(self, rootdir, bucket):
+    def sync_bucket(self, rootdir, bucket, files_filter=None,
+                    pre_upload_cb=None, pretend=False):
         log.info("Fetching list of files in S3 bucket: %s" % bucket.name)
         s3files = self.get_bucket_files_map(bucket)
+        put_files_map = dict()
         for f in utils.find_files(rootdir):
-            s3path = self._local_to_s3_path(os.path.relpath(f, rootdir))
+            relpath = os.path.relpath(f, rootdir)
+            s3path = self._local_to_s3_path(relpath)
             if s3path in s3files:
                 etag = s3files.get(s3path).etag.replace('"', '')
                 md5 = utils.compute_md5(f)
-                log.debug('s3 path found: %s with etag: %s' % (s3path, etag))
+                log.debug('S3 path found: %s with ETAG: %s' % (s3path, etag))
                 if etag != md5:
                     log.info("Existing S3 path '%s' is NOT in sync" % s3path)
-                    self.put_file(f, bucket, s3path, policy='public-read')
+                    put_files_map[f] = s3path
             else:
-                log.info("Local file '%s' not on S3...uploading" % f)
-                self.put_file(f, bucket, s3path, policy='public-read')
+                log.info("Local file '%s' not on S3 - marked for upload" % f)
+                put_files_map[f] = s3path
+        if files_filter:
+            put_files_map = files_filter(put_files_map) or put_files_map
+        for f, s3path in put_files_map.items():
+            self.put_file(f, bucket, s3path, pre_upload_cb=pre_upload_cb,
+                          policy='public-read', pretend=pretend)
 
     def download_bucket_file(self, bucket_key, local_path):
         pbar = self.progress_bar
