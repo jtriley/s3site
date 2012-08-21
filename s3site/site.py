@@ -29,13 +29,18 @@ class SiteManager(object):
         return self._progress_bar
 
     def get_site(self, name):
-        site_bucket = self.s3.get_bucket(name)
+        try:
+            site_bucket = self.s3.get_bucket(name)
+        except (exception.BucketDoesNotExist, S3ResponseError):
+            raise exception.SiteDoesNotExist(name)
+        if not site_bucket.get_key(static.S3SITE_META_FILE):
+            raise exception.SiteDoesNotExist(name)
         return Site(site_bucket, self.s3, self.cf)
 
     def get_site_or_none(self, name):
         try:
             return self.get_site(name)
-        except (exception.BucketDoesNotExist, S3ResponseError):
+        except exception.SiteDoesNotExist:
             pass
 
     def create_site(self, name, index_doc="index.html", error_doc="",

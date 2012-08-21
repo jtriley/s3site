@@ -59,6 +59,16 @@ class ConfigHasNoSections(ConfigError):
         self.msg = "No valid sections defined in config file %s" % cfg_file
 
 
+class S3SiteError(BaseException):
+    """Base exception for all s3site related errors"""
+    pass
+
+
+class SiteDoesNotExist(S3SiteError):
+    def __init__(self, site_name):
+        self.msg = "Site '%s' does not exist" % site_name
+
+
 class AWSError(BaseException):
     """Base exception for all AWS related errors"""
 
